@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/J0hnLenin/67League/internal/domain/club"
+	"github.com/J0hnLenin/67League/internal/domain/player"
 	"github.com/J0hnLenin/67League/internal/domain/shared"
 )
 
@@ -22,7 +23,7 @@ type JoinClubInput struct {
 }
 
 type JoinClubOutput struct {
-	Player           *club.Club // не используется, оставлено для совместимости
+	Player           *player.Player
 	MemberCount      int
 	FullBadgeAwarded bool
 }
