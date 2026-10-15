@@ -215,13 +215,19 @@ func (m *Match) Confirm(actor shared.PlayerID, now time.Time) error {
 }
 
 // Cancel — игрок или админ отменяет партию.
-// isAdmin — если true, то проверка на «нельзя отменять старые партии» пропускается.
-// cancelAfterDays — через сколько дней после finished_at партию нельзя отменить игроку.
+//
+// Игрок: нельзя отменять финальные статусы (confirmed / cancelled),
+// и нельзя отменять партию, у которой finished_at старше match_cancel_days.
+// Админ: может отменить что угодно, кроме уже отменённой партии.
 func (m *Match) Cancel(actor shared.PlayerID, isAdmin bool, cancelAfterDays int, now time.Time) error {
-	if m.Status.IsFinal() {
-		return shared.ErrInvalidState
-	}
-	if !isAdmin {
+	if isAdmin {
+		if m.Status == StatusCancelled {
+			return shared.ErrInvalidState
+		}
+	} else {
+		if m.Status.IsFinal() {
+			return shared.ErrInvalidState
+		}
 		if !m.IsParticipant(actor) {
 			return shared.ErrForbidden
 		}
