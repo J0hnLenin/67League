@@ -19,7 +19,6 @@ type PlayerBadge struct {
 
 func NewPlayerBadge(playerID shared.PlayerID, badgeID shared.BadgeID, seasonID *shared.SeasonID, now time.Time) *PlayerBadge {
 	return &PlayerBadge{
-		ID:        shared.NewPlayerBadgeID(),
 		PlayerID:  playerID,
 		BadgeID:   badgeID,
 		SeasonID:  seasonID,
@@ -39,7 +38,6 @@ type ClubBadge struct {
 
 func NewClubBadge(clubID shared.ClubID, badgeID shared.BadgeID, seasonID *shared.SeasonID, now time.Time) *ClubBadge {
 	return &ClubBadge{
-		ID:        shared.NewClubBadgeID(),
 		ClubID:    clubID,
 		BadgeID:   badgeID,
 		SeasonID:  seasonID,
@@ -58,7 +56,6 @@ type SuperTitle struct {
 
 func NewSuperTitle(seasonID shared.SeasonID, playerID shared.PlayerID, clubID shared.ClubID, now time.Time) *SuperTitle {
 	return &SuperTitle{
-		ID:        shared.NewSuperTitleID(),
 		SeasonID:  seasonID,
 		PlayerID:  playerID,
 		ClubID:    clubID,

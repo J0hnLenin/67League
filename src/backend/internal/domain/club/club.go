@@ -30,7 +30,6 @@ func New(name, city, university string, createdBy shared.PlayerID, now time.Time
 		return nil, shared.ErrValidation
 	}
 	return &Club{
-		ID:         shared.NewClubID(),
 		Name:       name,
 		City:       city,
 		University: university,

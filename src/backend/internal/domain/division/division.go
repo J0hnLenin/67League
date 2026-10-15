@@ -45,7 +45,6 @@ func New(
 		return nil, shared.ErrValidation
 	}
 	return &Division{
-		ID:        shared.NewDivisionID(),
 		SeasonID:  seasonID,
 		Code:      code,
 		Alias:     alias,

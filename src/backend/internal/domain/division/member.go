@@ -34,7 +34,6 @@ type DivisionMember struct {
 
 func NewMember(divisionID shared.DivisionID, playerID shared.PlayerID, now time.Time) *DivisionMember {
 	return &DivisionMember{
-		ID:         shared.NewDivisionMemberID(),
 		DivisionID: divisionID,
 		PlayerID:   playerID,
 		Status:     MemberActive,

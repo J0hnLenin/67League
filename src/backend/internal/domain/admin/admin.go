@@ -19,7 +19,6 @@ func New(login, passwordHash string, now time.Time) (*Admin, error) {
 		return nil, shared.ErrValidation
 	}
 	return &Admin{
-		ID:           shared.NewAdminID(),
 		Login:        login,
 		PasswordHash: passwordHash,
 		CreatedAt:    now,

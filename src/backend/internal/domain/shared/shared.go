@@ -1,52 +1,58 @@
-// Package shared содержит базовые типы, ID и ошибки, общие для всего домена.
 package shared
 
 import (
 	"errors"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // ---- Typed IDs ---------------------------------------------------------
+//
+// ID назначает репозиторий при Create (через RETURNING id в Postgres).
+// Нулевое значение означает «ещё не сохранено».
 
-type PlayerID uuid.UUID
-type AdminID uuid.UUID
-type ClubID uuid.UUID
-type SeasonID uuid.UUID
-type DivisionID uuid.UUID
-type DivisionMemberID uuid.UUID
-type MatchID uuid.UUID
-type MatchEventID uuid.UUID
-type BadgeID uuid.UUID
-type TitleID uuid.UUID
-type PlayerBadgeID uuid.UUID
-type ClubBadgeID uuid.UUID
-type SuperTitleID uuid.UUID
-type StoneTransactionID uuid.UUID
-type PurchaseID uuid.UUID
-type NotificationID uuid.UUID
+type PlayerID int64
+type AdminID int64
+type ClubID int64
+type SeasonID int64
+type DivisionID int64
+type DivisionMemberID int64
+type MatchID int64
+type MatchEventID int64
+type BadgeID int64
+type TitleID int64
+type PlayerBadgeID int64
+type ClubBadgeID int64
+type SuperTitleID int64
+type StoneTransactionID int64
+type PurchaseID int64
+type NotificationID int64
 
-func NewPlayerID() PlayerID                     { return PlayerID(uuid.New()) }
-func NewAdminID() AdminID                       { return AdminID(uuid.New()) }
-func NewClubID() ClubID                         { return ClubID(uuid.New()) }
-func NewSeasonID() SeasonID                     { return SeasonID(uuid.New()) }
-func NewDivisionID() DivisionID                 { return DivisionID(uuid.New()) }
-func NewDivisionMemberID() DivisionMemberID     { return DivisionMemberID(uuid.New()) }
-func NewMatchID() MatchID                       { return MatchID(uuid.New()) }
-func NewMatchEventID() MatchEventID             { return MatchEventID(uuid.New()) }
-func NewBadgeID() BadgeID                       { return BadgeID(uuid.New()) }
-func NewTitleID() TitleID                       { return TitleID(uuid.New()) }
-func NewPlayerBadgeID() PlayerBadgeID           { return PlayerBadgeID(uuid.New()) }
-func NewClubBadgeID() ClubBadgeID               { return ClubBadgeID(uuid.New()) }
-func NewSuperTitleID() SuperTitleID             { return SuperTitleID(uuid.New()) }
-func NewStoneTransactionID() StoneTransactionID { return StoneTransactionID(uuid.New()) }
-func NewPurchaseID() PurchaseID                 { return PurchaseID(uuid.New()) }
-func NewNotificationID() NotificationID         { return NotificationID(uuid.New()) }
+func (id PlayerID) String() string           { return strconv.FormatInt(int64(id), 10) }
+func (id AdminID) String() string            { return strconv.FormatInt(int64(id), 10) }
+func (id ClubID) String() string             { return strconv.FormatInt(int64(id), 10) }
+func (id SeasonID) String() string           { return strconv.FormatInt(int64(id), 10) }
+func (id DivisionID) String() string         { return strconv.FormatInt(int64(id), 10) }
+func (id DivisionMemberID) String() string   { return strconv.FormatInt(int64(id), 10) }
+func (id MatchID) String() string            { return strconv.FormatInt(int64(id), 10) }
+func (id MatchEventID) String() string       { return strconv.FormatInt(int64(id), 10) }
+func (id BadgeID) String() string            { return strconv.FormatInt(int64(id), 10) }
+func (id TitleID) String() string            { return strconv.FormatInt(int64(id), 10) }
+func (id PlayerBadgeID) String() string      { return strconv.FormatInt(int64(id), 10) }
+func (id ClubBadgeID) String() string        { return strconv.FormatInt(int64(id), 10) }
+func (id SuperTitleID) String() string       { return strconv.FormatInt(int64(id), 10) }
+func (id StoneTransactionID) String() string { return strconv.FormatInt(int64(id), 10) }
+func (id PurchaseID) String() string         { return strconv.FormatInt(int64(id), 10) }
+func (id NotificationID) String() string     { return strconv.FormatInt(int64(id), 10) }
 
-// ---- Общие ошибки ------------------------------------------------------
+// IsZero — ID ещё не назначен (запись не сохранена).
+func (id PlayerID) IsZero() bool { return id == 0 }
+
+// ... аналогично при необходимости.
+
+// ---- Общие ошибки (без изменений) -------------------------------------
 
 var (
 	ErrNotFound      = errors.New("not found")
@@ -59,9 +65,8 @@ var (
 	ErrLimitExceeded = errors.New("limit exceeded")
 )
 
-// ---- Value objects -----------------------------------------------------
+// ---- Value objects (без изменений) ------------------------------------
 
-// Email — валидированный email.
 type Email string
 
 var emailRe = regexp.MustCompile(`^[^@\s]+@[^@\s]+\.[^@\s]+$`)
@@ -76,7 +81,6 @@ func NewEmail(raw string) (Email, error) {
 
 func (e Email) String() string { return string(e) }
 
-// Nickname — игровой ник в лиге.
 type Nickname string
 
 func NewNickname(raw string) (Nickname, error) {
@@ -89,7 +93,6 @@ func NewNickname(raw string) (Nickname, error) {
 
 func (n Nickname) String() string { return string(n) }
 
-// Rating — рейтинг РФГ. 0 означает «нет рейтинга».
 type Rating int
 
 func NewRating(v int) (Rating, error) {
@@ -98,16 +101,10 @@ func NewRating(v int) (Rating, error) {
 	}
 	return Rating(v), nil
 }
-
 func (r Rating) IsZero() bool { return r == 0 }
 
-// LP — League Points, соревновательный рейтинг внутри сезона. Не тратится.
 type LP float64
-
-// Stones — игровая валюта. Может быть дробной из-за бонуса +0.5.
 type Stones float64
-
-// ---- Timestamps --------------------------------------------------------
 
 type Timestamps struct {
 	CreatedAt time.Time

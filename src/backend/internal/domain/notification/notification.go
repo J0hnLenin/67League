@@ -43,7 +43,6 @@ func New(playerID shared.PlayerID, t Type, payload map[string]any, ch Channel, n
 		payload = map[string]any{}
 	}
 	return &Notification{
-		ID:        shared.NewNotificationID(),
 		PlayerID:  playerID,
 		Type:      t,
 		Payload:   payload,

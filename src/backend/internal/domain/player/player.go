@@ -81,7 +81,7 @@ func New(p NewPlayerParams, now time.Time) (*Player, error) {
 		return nil, shared.ErrValidation
 	}
 	return &Player{
-		ID:           shared.NewPlayerID(),
+		// ID намеренно 0 — назначит репозиторий.
 		FullName:     p.FullName,
 		Email:        p.Email,
 		PasswordHash: p.PasswordHash,
@@ -93,8 +93,6 @@ func New(p NewPlayerParams, now time.Time) (*Player, error) {
 		SputnikID:    p.SputnikID,
 		City:         p.City,
 		Rating:       p.Rating,
-		Stones:       0,
-		LPTotal:      0,
 		Status:       StatusActive,
 		CreatedAt:    now,
 		UpdatedAt:    now,

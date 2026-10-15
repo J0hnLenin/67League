@@ -18,7 +18,6 @@ type StoneTransaction struct {
 
 func NewTransaction(playerID shared.PlayerID, amount shared.Stones, reason string, refID *string, now time.Time) *StoneTransaction {
 	return &StoneTransaction{
-		ID:        shared.NewStoneTransactionID(),
 		PlayerID:  playerID,
 		Amount:    amount,
 		Reason:    reason,
@@ -41,7 +40,6 @@ func NewPurchase(playerID shared.PlayerID, itemCode string, price shared.Stones,
 		return nil, shared.ErrValidation
 	}
 	return &Purchase{
-		ID:        shared.NewPurchaseID(),
 		PlayerID:  playerID,
 		ItemCode:  itemCode,
 		Price:     price,

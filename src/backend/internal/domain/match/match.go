@@ -108,7 +108,6 @@ func New(p NewMatchParams, now time.Time) (*Match, error) {
 		return nil, shared.ErrForbidden
 	}
 	return &Match{
-		ID:            shared.NewMatchID(),
 		SeasonID:      p.SeasonID,
 		DivisionID:    p.DivisionID,
 		BlackPlayerID: p.BlackPlayerID,
@@ -132,7 +131,7 @@ func (m *Match) OpponentOf(p shared.PlayerID) (shared.PlayerID, bool) {
 	case m.WhitePlayerID:
 		return m.BlackPlayerID, true
 	}
-	return shared.NewPlayerID(), false
+	return 0, false
 }
 
 func (m *Match) IsParticipant(p shared.PlayerID) bool {

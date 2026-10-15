@@ -1,0 +1,11 @@
+template: testify
+
+dir: internal/testsupport/mocks
+filename: "{{.InterfaceName}}.go"
+structname: "{{.InterfaceName}}"
+pkgname: mocks
+
+packages:
+  github.com/J0hnLenin/67League/internal/application/ports:
+    config:
+      all: true

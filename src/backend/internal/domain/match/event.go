@@ -32,7 +32,6 @@ func NewEvent(matchID shared.MatchID, t EventType, actor shared.PlayerID, payloa
 		payload = map[string]any{}
 	}
 	return &MatchEvent{
-		ID:        shared.NewMatchEventID(),
 		MatchID:   matchID,
 		Type:      t,
 		ActorID:   actor,

@@ -59,7 +59,6 @@ func New(number int, title string, start, end time.Time, s Settings, now time.Ti
 		return nil, shared.ErrValidation
 	}
 	return &Season{
-		ID:        shared.NewSeasonID(),
 		Number:    number,
 		Title:     title,
 		StartDate: start,
