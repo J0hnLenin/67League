@@ -2,10 +2,7 @@ module github.com/J0hnLenin/67League
 
 go 1.27.1
 
-require (
-	github.com/google/uuid v1.6.0
-	github.com/stretchr/testify v1.12.1
-)
+require github.com/stretchr/testify v1.12.1
 
 require (
 	github.com/stretchr/objx v0.5.3 // indirect
