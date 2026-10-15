@@ -152,15 +152,19 @@ func TestCreateClub(t *testing.T) {
 
 			creator := makePlayer(t, now, tt.creatorStatus)
 
-			// Создателя и имя читаем только когда имя непустое:
-			// при пустом имени use case падает на валидации раньше.
+			// Порядок вызовов в use case:
+			//  1. валидация имени;
+			//  2. ExistsByName — если имя занято, выходим;
+			//  3. GetByID создателя — если создатель забанен, выходим.
 			if tt.clubName != "" {
-				h.players.EXPECT().GetByID(mock.Anything, ccCreatorID).
-					Return(creator, nil).Once()
-
 				exists := tt.existingName != ""
 				h.clubs.EXPECT().ExistsByName(mock.Anything, tt.clubName).
 					Return(exists, nil).Once()
+
+				if !exists {
+					h.players.EXPECT().GetByID(mock.Anything, ccCreatorID).
+						Return(creator, nil).Once()
+				}
 			}
 
 			if tt.wantErr == nil {
@@ -182,7 +186,6 @@ func TestCreateClub(t *testing.T) {
 					}).
 					Return(nil).Once()
 
-				// Бейдж «Основание»: справочник может не отдать — не критично.
 				h.badges.EXPECT().
 					GetByCode(mock.Anything, club.BadgeCodeFounding).
 					Return(&h.founding, nil).Maybe()
@@ -193,7 +196,7 @@ func TestCreateClub(t *testing.T) {
 						Run(func(_ context.Context, cb *dombadge.ClubBadge) {
 							require.Equal(t, ccClubID, cb.ClubID)
 							require.Equal(t, ccBadgeID, cb.BadgeID)
-							require.Nil(t, cb.SeasonID, "клубный бейдж основателя не привязан к сезону")
+							require.Nil(t, cb.SeasonID)
 						}).
 						Return(nil).Once()
 				}
