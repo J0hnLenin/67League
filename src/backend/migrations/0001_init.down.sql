@@ -1,0 +1,17 @@
+DROP TABLE IF EXISTS site_settings;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS purchases;
+DROP TABLE IF EXISTS stone_transactions;
+DROP TABLE IF EXISTS super_titles;
+DROP TABLE IF EXISTS club_badges;
+DROP TABLE IF EXISTS player_badges;
+DROP TABLE IF EXISTS titles;
+DROP TABLE IF EXISTS badges;
+DROP TABLE IF EXISTS match_events;
+DROP TABLE IF EXISTS matches;
+DROP TABLE IF EXISTS division_members;
+DROP TABLE IF EXISTS divisions;
+DROP TABLE IF EXISTS seasons;
+DROP TABLE IF EXISTS clubs;
+DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS players;

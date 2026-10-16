@@ -25,6 +25,7 @@ type DivisionMember struct {
 	MatchesPlayed int
 	StreakCurrent int
 	StreakMax     int
+	StreaksBroken int
 	FinalPlace    *int
 
 	Status    MemberStatus
@@ -44,20 +45,28 @@ func NewMember(divisionID shared.DivisionID, playerID shared.PlayerID, now time.
 
 // RegisterWin — победа. Возвращает бонус за снятие стрика у соперника.
 // Значение opponentStreakBeforeWin — стрик соперника до этой партии.
-func (m *DivisionMember) RegisterWin(settings StreakSettings, opponentStreakBeforeWin int, now time.Time) (lpBonus, stoneBonus shared.LP) {
+func (m *DivisionMember) RegisterWin(
+	settings StreakSettings,
+	opponentStreakBeforeWin int,
+	now time.Time,
+) (lpBonus, stoneBonus shared.LP) {
 	m.Wins++
 	m.MatchesPlayed++
 	m.StreakCurrent++
 	if m.StreakCurrent > m.StreakMax {
 		m.StreakMax = m.StreakCurrent
 	}
+	m.UpdatedAt = now
 
 	switch {
 	case opponentStreakBeforeWin >= 6:
+		m.StreaksBroken++
 		return shared.LP(settings.StreakBonus67), shared.LP(settings.StreakBonus67)
 	case opponentStreakBeforeWin == 5:
+		m.StreaksBroken++
 		return shared.LP(settings.StreakBonus5), shared.LP(settings.StreakBonus5)
 	case opponentStreakBeforeWin == 3 || opponentStreakBeforeWin == 4:
+		m.StreaksBroken++
 		return shared.LP(settings.StreakBonus3), shared.LP(settings.StreakBonus3)
 	}
 	return 0, 0
