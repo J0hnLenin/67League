@@ -35,16 +35,7 @@ func (h *DivisionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, appdto.DivisionResponse{
-		ID:        int64(d.ID),
-		SeasonID:  int64(d.SeasonID),
-		Code:      d.Code,
-		Alias:     d.Alias,
-		RatingMin: int(d.RatingMin),
-		RatingMax: int(d.RatingMax),
-		Order:     d.Order,
-		Status:    string(d.Status),
-	})
+	httputil.WriteJSON(w, http.StatusOK, appdto.DivisionToResponse(d))
 }
 
 func (h *DivisionHandler) Members(w http.ResponseWriter, r *http.Request) {
@@ -58,20 +49,5 @@ func (h *DivisionHandler) Members(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	out := make([]appdto.DivisionMemberResponse, 0, len(list))
-	for _, m := range list {
-		out = append(out, appdto.DivisionMemberResponse{
-			PlayerID:      int64(m.PlayerID),
-			DivisionID:    int64(m.DivisionID),
-			LP:            float64(m.LP),
-			Wins:          m.Wins,
-			Losses:        m.Losses,
-			MatchesPlayed: m.MatchesPlayed,
-			StreakCurrent: m.StreakCurrent,
-			StreakMax:     m.StreakMax,
-			FinalPlace:    m.FinalPlace,
-			Status:        string(m.Status),
-		})
-	}
-	httputil.WriteJSON(w, http.StatusOK, out)
+	httputil.WriteJSON(w, http.StatusOK, appdto.DivisionMembersToResponse(list))
 }

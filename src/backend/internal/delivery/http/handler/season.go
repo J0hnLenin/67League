@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -13,7 +12,6 @@ import (
 	appdto "github.com/J0hnLenin/67League/internal/delivery/http/dto"
 	"github.com/J0hnLenin/67League/internal/delivery/http/httputil"
 	"github.com/J0hnLenin/67League/internal/delivery/http/middleware"
-	domseason "github.com/J0hnLenin/67League/internal/domain/season"
 	"github.com/J0hnLenin/67League/internal/domain/shared"
 )
 
@@ -37,7 +35,7 @@ func (h *SeasonHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	out := make([]appdto.SeasonResponse, 0, len(list))
 	for _, s := range list {
-		out = append(out, seasonToResponse(s))
+		out = append(out, appdto.SeasonToResponse(s))
 	}
 	httputil.WriteJSON(w, http.StatusOK, out)
 }
@@ -48,7 +46,7 @@ func (h *SeasonHandler) Current(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, seasonToResponse(s))
+	httputil.WriteJSON(w, http.StatusOK, appdto.SeasonToResponse(s))
 }
 
 func (h *SeasonHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +60,7 @@ func (h *SeasonHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, seasonToResponse(s))
+	httputil.WriteJSON(w, http.StatusOK, appdto.SeasonToResponse(s))
 }
 
 func (h *SeasonHandler) Join(w http.ResponseWriter, r *http.Request) {
@@ -88,15 +86,4 @@ func (h *SeasonHandler) Join(w http.ResponseWriter, r *http.Request) {
 		DivisionID: int64(out.Division.ID),
 		MemberID:   int64(out.Member.ID),
 	})
-}
-
-func seasonToResponse(s *domseason.Season) appdto.SeasonResponse {
-	return appdto.SeasonResponse{
-		ID:        int64(s.ID),
-		Number:    s.Number,
-		Title:     s.Title,
-		StartDate: s.StartDate.UTC().Format(time.RFC3339),
-		EndDate:   s.EndDate.UTC().Format(time.RFC3339),
-		Status:    string(s.Status),
-	}
 }

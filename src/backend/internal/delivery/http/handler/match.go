@@ -3,8 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -80,7 +78,7 @@ func (h *MatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusCreated, matchToResponse(out.Match))
+	httputil.WriteJSON(w, http.StatusCreated, appdto.MatchToResponse(out.Match))
 }
 
 func (h *MatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +92,7 @@ func (h *MatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, matchToResponse(m))
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(m))
 }
 
 func (h *MatchHandler) ListMine(w http.ResponseWriter, r *http.Request) {
@@ -119,11 +117,7 @@ func (h *MatchHandler) ListMine(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	out := make([]appdto.MatchResponse, 0, len(list))
-	for _, m := range list {
-		out = append(out, matchToResponse(m))
-	}
-	httputil.WriteJSON(w, http.StatusOK, out)
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchesToResponse(list))
 }
 
 func (h *MatchHandler) Accept(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +139,7 @@ func (h *MatchHandler) Accept(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, matchToResponse(out.Match))
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(out.Match))
 }
 
 func (h *MatchHandler) Start(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +161,7 @@ func (h *MatchHandler) Start(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, matchToResponse(out.Match))
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(out.Match))
 }
 
 func (h *MatchHandler) SubmitResult(w http.ResponseWriter, r *http.Request) {
@@ -200,7 +194,7 @@ func (h *MatchHandler) SubmitResult(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, matchToResponse(out.Match))
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(out.Match))
 }
 
 func (h *MatchHandler) Confirm(w http.ResponseWriter, r *http.Request) {
@@ -222,7 +216,7 @@ func (h *MatchHandler) Confirm(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, matchToResponse(out.Match))
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(out.Match))
 }
 
 func (h *MatchHandler) Cancel(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +232,6 @@ func (h *MatchHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req appdto.CancelMatchRequest
-	// тело необязательное — если пусто, req останется нулевым
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
 	out, err := h.cancelUC.Execute(r.Context(), dto.CancelMatchInput{
@@ -251,58 +244,5 @@ func (h *MatchHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusOK, matchToResponse(out.Match))
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(out.Match))
 }
-
-// ---- helpers --------------------------------------------------------------
-
-func matchToResponse(m *dommatch.Match) appdto.MatchResponse {
-	resp := appdto.MatchResponse{
-		ID:            int64(m.ID),
-		SeasonID:      int64(m.SeasonID),
-		DivisionID:    int64(m.DivisionID),
-		BlackPlayerID: int64(m.BlackPlayerID),
-		WhitePlayerID: int64(m.WhitePlayerID),
-		CreatedBy:     int64(m.CreatedBy),
-		Status:        string(m.Status),
-		Server:        string(m.Server),
-		TimeControl:   m.TimeControl,
-		Handicap:      m.Handicap,
-		Komi:          m.Komi,
-		SGFURL:        m.SGFURL,
-		Link:          m.ExternalLink,
-		CancelReason:  m.CancelReason,
-		CreatedAt:     m.CreatedAt.UTC().Format(time.RFC3339),
-	}
-	if m.WinnerID != nil {
-		id := int64(*m.WinnerID)
-		resp.WinnerID = &id
-	}
-	if m.ScoreDiff != nil {
-		resp.ScoreDiff = m.ScoreDiff
-	}
-	if m.AcceptedAt != nil {
-		s := m.AcceptedAt.UTC().Format(time.RFC3339)
-		resp.AcceptedAt = &s
-	}
-	if m.StartedAt != nil {
-		s := m.StartedAt.UTC().Format(time.RFC3339)
-		resp.StartedAt = &s
-	}
-	if m.FinishedAt != nil {
-		s := m.FinishedAt.UTC().Format(time.RFC3339)
-		resp.FinishedAt = &s
-	}
-	if m.ConfirmedAt != nil {
-		s := m.ConfirmedAt.UTC().Format(time.RFC3339)
-		resp.ConfirmedAt = &s
-	}
-	if m.CancelledAt != nil {
-		s := m.CancelledAt.UTC().Format(time.RFC3339)
-		resp.CancelledAt = &s
-	}
-	return resp
-}
-
-// parseID объявлен в handler/auth.go, здесь не дублируем.
-var _ = strconv.ParseInt

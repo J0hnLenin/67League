@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -14,7 +15,6 @@ import (
 	appdto "github.com/J0hnLenin/67League/internal/delivery/http/dto"
 	"github.com/J0hnLenin/67League/internal/delivery/http/httputil"
 	"github.com/J0hnLenin/67League/internal/delivery/http/middleware"
-	domclub "github.com/J0hnLenin/67League/internal/domain/club"
 	"github.com/J0hnLenin/67League/internal/domain/shared"
 )
 
@@ -54,7 +54,7 @@ func (h *ClubHandler) List(w http.ResponseWriter, r *http.Request) {
 	out := make([]appdto.ClubResponse, 0, len(items))
 	for _, c := range items {
 		n, _ := h.players.CountByClub(r.Context(), c.ID)
-		out = append(out, clubToResponse(c, n))
+		out = append(out, appdto.ClubToResponse(c, n))
 	}
 	httputil.WriteJSON(w, http.StatusOK, out)
 }
@@ -71,7 +71,7 @@ func (h *ClubHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	n, _ := h.players.CountByClub(r.Context(), c.ID)
-	httputil.WriteJSON(w, http.StatusOK, clubToResponse(c, n))
+	httputil.WriteJSON(w, http.StatusOK, appdto.ClubToResponse(c, n))
 }
 
 func (h *ClubHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +95,7 @@ func (h *ClubHandler) Create(w http.ResponseWriter, r *http.Request) {
 		httputil.WriteError(w, err)
 		return
 	}
-	httputil.WriteJSON(w, http.StatusCreated, clubToResponse(out.Club, 1))
+	httputil.WriteJSON(w, http.StatusCreated, appdto.ClubToResponse(out.Club, 1))
 }
 
 func (h *ClubHandler) Join(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +125,6 @@ func (h *ClubHandler) Join(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ClubHandler) Leave(w http.ResponseWriter, r *http.Request) {
-	// TODO: реализовать LeaveClub use case
 	httputil.WriteError(w, errors.New("not implemented"))
 }
 
@@ -152,27 +151,10 @@ func (h *ClubHandler) Badges(w http.ResponseWriter, r *http.Request) {
 			Code:      b.Code,
 			Icon:      b.Icon,
 			Name:      b.Name,
-			AwardedAt: cb.AwardedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
+			AwardedAt: cb.AwardedAt.UTC().Format(time.RFC3339),
 			IsActive:  true,
 		}
 		out = append(out, item)
 	}
 	httputil.WriteJSON(w, http.StatusOK, out)
-}
-
-func clubToResponse(c *domclub.Club, members int) appdto.ClubResponse {
-	resp := appdto.ClubResponse{
-		ID:         int64(c.ID),
-		Name:       c.Name,
-		City:       c.City,
-		University: c.University,
-		LogoURL:    c.LogoURL,
-		Status:     string(c.Status),
-		Members:    members,
-	}
-	if c.CreatedBy != 0 {
-		id := int64(c.CreatedBy)
-		resp.CreatedBy = &id
-	}
-	return resp
 }

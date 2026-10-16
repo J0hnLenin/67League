@@ -63,25 +63,7 @@ func (h *PlayerHandler) writePlayer(w http.ResponseWriter, r *http.Request, id s
 		httputil.WriteError(w, err)
 		return
 	}
-	resp := appdto.PlayerResponse{
-		ID:       int64(p.ID),
-		FullName: p.FullName,
-		Nickname: string(p.Nickname),
-		City:     p.City,
-		Rating:   int(p.Rating),
-		Stones:   float64(p.Stones),
-		LPTotal:  float64(p.LPTotal),
-		Status:   string(p.Status),
-	}
-	if p.ClubID != nil {
-		id := int64(*p.ClubID)
-		resp.ClubID = &id
-	}
-	if p.ActiveTitleID != nil {
-		id := int64(*p.ActiveTitleID)
-		resp.ActiveTitle = &id
-	}
-	httputil.WriteJSON(w, http.StatusOK, resp)
+	httputil.WriteJSON(w, http.StatusOK, appdto.PlayerToResponse(p))
 }
 
 func (h *PlayerHandler) Badges(w http.ResponseWriter, r *http.Request) {

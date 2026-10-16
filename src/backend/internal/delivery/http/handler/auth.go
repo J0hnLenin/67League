@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/J0hnLenin/67League/internal/application/dto"
 	"github.com/J0hnLenin/67League/internal/application/usecases/player"
@@ -109,10 +108,4 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Nickname: string(out.Player.Nickname),
 		Token:    out.Token,
 	})
-}
-
-// ---- helpers --------------------------------------------------------------
-
-func parseID(s string) (int64, error) {
-	return strconv.ParseInt(s, 10, 64)
 }
