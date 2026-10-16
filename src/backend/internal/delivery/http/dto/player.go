@@ -12,3 +12,28 @@ type PlayerResponse struct {
 	Status      string  `json:"status"`
 	ActiveTitle *int64  `json:"active_title_id,omitempty"`
 }
+
+type PlayerBadgeResponse struct {
+	ID        int64  `json:"id"`
+	BadgeID   int64  `json:"badge_id"`
+	Code      string `json:"code"`
+	Icon      string `json:"icon"`
+	Name      string `json:"name"`
+	SeasonID  *int64 `json:"season_id,omitempty"`
+	AwardedAt string `json:"awarded_at"`
+	IsActive  bool   `json:"is_active"`
+}
+
+type TitleResponse struct {
+	ID      int64  `json:"id"`
+	Code    string `json:"code"`
+	Name    string `json:"name"`
+	BadgeID *int64 `json:"badge_id,omitempty"`
+}
+
+type StoneTransactionResponse struct {
+	ID        int64   `json:"id"`
+	Amount    float64 `json:"amount"`
+	Reason    string  `json:"reason"`
+	CreatedAt string  `json:"created_at"`
+}
