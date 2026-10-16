@@ -21,6 +21,7 @@ type RouterConfig struct {
 	Club     *handler.ClubHandler
 	Season   *handler.SeasonHandler
 	Division *handler.DivisionHandler
+	Match    *handler.MatchHandler
 }
 
 func NewRouter(cfg RouterConfig) http.Handler {
@@ -37,36 +38,55 @@ func NewRouter(cfg RouterConfig) http.Handler {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// Публичные.
+		// ---- Публичные роуты -------------------------------------------
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", cfg.Auth.Register)
 			r.Post("/login", cfg.Auth.Login)
 		})
+
 		r.Get("/players/{id}", cfg.Player.GetByID)
+
 		r.Get("/clubs", cfg.Club.List)
 		r.Get("/clubs/{id}", cfg.Club.GetByID)
 		r.Get("/clubs/{id}/badges", cfg.Club.Badges)
+
 		r.Get("/seasons", cfg.Season.List)
 		r.Get("/seasons/current", cfg.Season.Current)
 		r.Get("/seasons/{id}", cfg.Season.GetByID)
+
 		r.Get("/divisions/{id}", cfg.Division.GetByID)
 		r.Get("/divisions/{id}/members", cfg.Division.Members)
 
-		// Приватные — игрок.
+		r.Get("/matches/{id}", cfg.Match.GetByID)
+
+		// ---- Приватные роуты (игрок) -----------------------------------
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(cfg.Tokens))
 			r.Use(middleware.RequirePlayer())
 
+			// Профиль.
 			r.Get("/me", cfg.Player.Me)
 			r.Get("/me/badges", cfg.Player.Badges)
 			r.Get("/me/titles", cfg.Player.Titles)
 			r.Get("/me/stones/history", cfg.Player.StoneHistory)
 
+			// Клубы.
 			r.Post("/clubs", cfg.Club.Create)
 			r.Post("/clubs/{id}/join", cfg.Club.Join)
 			r.Post("/clubs/{id}/leave", cfg.Club.Leave)
 
+			// Сезоны.
 			r.Post("/seasons/{id}/join", cfg.Season.Join)
+
+			// Партии.
+			r.Post("/matches", cfg.Match.Create)
+			r.Post("/matches/{id}/accept", cfg.Match.Accept)
+			r.Post("/matches/{id}/start", cfg.Match.Start)
+			r.Post("/matches/{id}/result", cfg.Match.SubmitResult)
+			r.Post("/matches/{id}/confirm", cfg.Match.Confirm)
+			r.Post("/matches/{id}/cancel", cfg.Match.Cancel)
+
+			r.Get("/me/matches", cfg.Match.ListMine)
 		})
 	})
 

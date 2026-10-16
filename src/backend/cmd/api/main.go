@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/J0hnLenin/67League/internal/application/usecases/club"
-	"github.com/J0hnLenin/67League/internal/application/usecases/player"
-	"github.com/J0hnLenin/67League/internal/application/usecases/season"
+	clubuc "github.com/J0hnLenin/67League/internal/application/usecases/club"
+	matchuc "github.com/J0hnLenin/67League/internal/application/usecases/match"
+	playeruc "github.com/J0hnLenin/67League/internal/application/usecases/player"
+	seasonuc "github.com/J0hnLenin/67League/internal/application/usecases/season"
 	apphttp "github.com/J0hnLenin/67League/internal/delivery/http"
 	"github.com/J0hnLenin/67League/internal/delivery/http/handler"
 	"github.com/J0hnLenin/67League/internal/infrastructure/auth"
@@ -45,7 +46,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
-
 	pool := db.Pool()
 
 	// ---- Репозитории --------------------------------------------------
@@ -67,14 +67,10 @@ func main() {
 	notificationRepo := postgres.NewNotificationRepo(pool)
 	settingsRepo := postgres.NewSettingsRepo(pool)
 
-	// _ = adminRepo и т.д. — здесь просто чтобы показать, что они созданы.
-	// Часть пока не используется в use cases, но понадобится в админ-слое.
+	// Часть репозиториев пока не подключена к handlers.
 	_ = adminRepo
-	_ = matchRepo
-	_ = matchEventRepo
 	_ = superTitleRepo
 	_ = purchaseRepo
-	_ = notificationRepo
 	_ = settingsRepo
 
 	// ---- Инфраструктурные сервисы -------------------------------------
@@ -82,14 +78,12 @@ func main() {
 	tokens := auth.NewJWTIssuer(auth.JWTConfig{Secret: jwtSecret})
 	sender := &email.LogSender{Logger: logger}
 	txManager := postgres.NewTxManager(pool)
-
-	// _ = sender — заглушка, чтобы показать: в use case'ах он не нужен.
-	_ = sender
-
 	clock := systemClock{}
 
-	// ---- Use cases ----------------------------------------------------
-	registerUC, err := player.NewRegisterPlayer(player.RegisterPlayerDeps{
+	_ = sender // понадобится в воркере рассылки
+
+	// ---- Use cases: player --------------------------------------------
+	registerUC, err := playeruc.NewRegisterPlayer(playeruc.RegisterPlayerDeps{
 		Players:   playerRepo,
 		Clubs:     clubRepo,
 		Seasons:   seasonRepo,
@@ -104,7 +98,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	loginUC, err := player.NewLoginPlayer(player.LoginPlayerDeps{
+	loginUC, err := playeruc.NewLoginPlayer(playeruc.LoginPlayerDeps{
 		Players: playerRepo,
 		Hasher:  hasher,
 		Tokens:  tokens,
@@ -114,7 +108,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	createClubUC, err := club.NewCreateClub(club.CreateClubDeps{
+	// ---- Use cases: club ----------------------------------------------
+	createClubUC, err := clubuc.NewCreateClub(clubuc.CreateClubDeps{
 		Clubs:     clubRepo,
 		Players:   playerRepo,
 		Badges:    badgeRepo,
@@ -127,7 +122,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	joinClubUC, err := club.NewJoinClub(club.JoinClubDeps{
+	joinClubUC, err := clubuc.NewJoinClub(clubuc.JoinClubDeps{
 		Clubs:      clubRepo,
 		Players:    playerRepo,
 		Badges:     badgeRepo,
@@ -140,7 +135,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	joinSeasonUC, err := season.NewJoinSeason(season.JoinSeasonDeps{
+	// ---- Use cases: season --------------------------------------------
+	joinSeasonUC, err := seasonuc.NewJoinSeason(seasonuc.JoinSeasonDeps{
 		Players:   playerRepo,
 		Seasons:   seasonRepo,
 		Divisions: divisionRepo,
@@ -150,6 +146,85 @@ func main() {
 	})
 	if err != nil {
 		logger.Error("join season usecase", "err", err)
+		os.Exit(1)
+	}
+
+	// ---- Use cases: match ---------------------------------------------
+	createMatchUC, err := matchuc.NewCreateMatch(matchuc.CreateMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Members: memberRepo,
+		Seasons: seasonRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		logger.Error("create match usecase", "err", err)
+		os.Exit(1)
+	}
+
+	acceptMatchUC, err := matchuc.NewAcceptMatch(matchuc.AcceptMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		logger.Error("accept match usecase", "err", err)
+		os.Exit(1)
+	}
+
+	startMatchUC, err := matchuc.NewStartMatch(matchuc.StartMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		logger.Error("start match usecase", "err", err)
+		os.Exit(1)
+	}
+
+	submitMatchUC, err := matchuc.NewSubmitResult(matchuc.SubmitResultDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		logger.Error("submit result usecase", "err", err)
+		os.Exit(1)
+	}
+
+	confirmMatchUC, err := matchuc.NewConfirmResult(matchuc.ConfirmResultDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Members: memberRepo,
+		Players: playerRepo,
+		Seasons: seasonRepo,
+		Stones:  stoneRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		logger.Error("confirm result usecase", "err", err)
+		os.Exit(1)
+	}
+
+	cancelMatchUC, err := matchuc.NewCancelMatch(matchuc.CancelMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Seasons: seasonRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		logger.Error("cancel match usecase", "err", err)
 		os.Exit(1)
 	}
 
@@ -172,6 +247,16 @@ func main() {
 	)
 	seasonHandler := handler.NewSeasonHandler(seasonRepo, joinSeasonUC)
 	divisionHandler := handler.NewDivisionHandler(divisionRepo, memberRepo)
+	matchHandler := handler.NewMatchHandler(
+		matchRepo,
+		matchEventRepo,
+		createMatchUC,
+		acceptMatchUC,
+		startMatchUC,
+		submitMatchUC,
+		confirmMatchUC,
+		cancelMatchUC,
+	)
 
 	// ---- Router -------------------------------------------------------
 	router := apphttp.NewRouter(apphttp.RouterConfig{
@@ -182,6 +267,7 @@ func main() {
 		Club:     clubHandler,
 		Season:   seasonHandler,
 		Division: divisionHandler,
+		Match:    matchHandler,
 	})
 
 	// ---- HTTP server --------------------------------------------------

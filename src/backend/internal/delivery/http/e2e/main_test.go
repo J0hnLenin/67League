@@ -31,6 +31,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/J0hnLenin/67League/internal/application/usecases/club"
+	matchuc "github.com/J0hnLenin/67League/internal/application/usecases/match"
 	"github.com/J0hnLenin/67League/internal/application/usecases/player"
 	usecaseseason "github.com/J0hnLenin/67League/internal/application/usecases/season"
 	apphttp "github.com/J0hnLenin/67League/internal/delivery/http"
@@ -118,20 +119,25 @@ func buildApp(pool *pgxpool.Pool) (*app, error) {
 	seasonRepo := postgres.NewSeasonRepo(pool)
 	divisionRepo := postgres.NewDivisionRepo(pool)
 	memberRepo := postgres.NewDivisionMemberRepo(pool)
+	matchRepo := postgres.NewMatchRepo(pool)
+	matchEventRepo := postgres.NewMatchEventRepo(pool)
 	badgeRepo := postgres.NewBadgeRepo(pool)
 	titleRepo := postgres.NewTitleRepo(pool)
 	playerBadgeRepo := postgres.NewPlayerBadgeRepo(pool)
 	clubBadgeRepo := postgres.NewClubBadgeRepo(pool)
 	stoneRepo := postgres.NewStoneTransactionRepo(pool)
+	notificationRepo := postgres.NewNotificationRepo(pool)
 
-	hasher := auth.NewPasswordHasher(4) // низкая цена для скорости тестов
+	hasher := auth.NewPasswordHasher(4)
 	tokens := auth.NewJWTIssuer(auth.JWTConfig{
 		Secret:    "test-secret",
 		PlayerTTL: time.Hour,
 	})
 	txManager := postgres.NewTxManager(pool)
 	clock := systemClock{}
+	logger := realLogger()
 
+	// ---- Use cases: player ----
 	registerUC, err := player.NewRegisterPlayer(player.RegisterPlayerDeps{
 		Players:   playerRepo,
 		Clubs:     clubRepo,
@@ -153,6 +159,8 @@ func buildApp(pool *pgxpool.Pool) (*app, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// ---- Use cases: club ----
 	createClubUC, err := club.NewCreateClub(club.CreateClubDeps{
 		Clubs:     clubRepo,
 		Players:   playerRepo,
@@ -175,6 +183,8 @@ func buildApp(pool *pgxpool.Pool) (*app, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// ---- Use cases: season ----
 	joinSeasonUC, err := usecaseseason.NewJoinSeason(usecaseseason.JoinSeasonDeps{
 		Players:   playerRepo,
 		Seasons:   seasonRepo,
@@ -187,7 +197,76 @@ func buildApp(pool *pgxpool.Pool) (*app, error) {
 		return nil, err
 	}
 
-	authH := handler.NewAuthHandler(registerUC, loginUC, discardLogger())
+	// ---- Use cases: match ----
+	createMatchUC, err := matchuc.NewCreateMatch(matchuc.CreateMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Members: memberRepo,
+		Seasons: seasonRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		return nil, err
+	}
+	acceptMatchUC, err := matchuc.NewAcceptMatch(matchuc.AcceptMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		return nil, err
+	}
+	startMatchUC, err := matchuc.NewStartMatch(matchuc.StartMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		return nil, err
+	}
+	submitMatchUC, err := matchuc.NewSubmitResult(matchuc.SubmitResultDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		return nil, err
+	}
+	confirmMatchUC, err := matchuc.NewConfirmResult(matchuc.ConfirmResultDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Members: memberRepo,
+		Players: playerRepo,
+		Seasons: seasonRepo,
+		Stones:  stoneRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		return nil, err
+	}
+	cancelMatchUC, err := matchuc.NewCancelMatch(matchuc.CancelMatchDeps{
+		Matches: matchRepo,
+		Events:  matchEventRepo,
+		Seasons: seasonRepo,
+		Notifs:  notificationRepo,
+		Clock:   clock,
+		Tx:      txManager,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// ---- Handlers ----
+	authH := handler.NewAuthHandler(registerUC, loginUC, logger)
 	playerH := handler.NewPlayerHandler(
 		playerRepo, badgeRepo, playerBadgeRepo, titleRepo, stoneRepo,
 	)
@@ -197,15 +276,21 @@ func buildApp(pool *pgxpool.Pool) (*app, error) {
 	)
 	seasonH := handler.NewSeasonHandler(seasonRepo, joinSeasonUC)
 	divisionH := handler.NewDivisionHandler(divisionRepo, memberRepo)
+	matchH := handler.NewMatchHandler(
+		matchRepo, matchEventRepo,
+		createMatchUC, acceptMatchUC, startMatchUC,
+		submitMatchUC, confirmMatchUC, cancelMatchUC,
+	)
 
 	router := apphttp.NewRouter(apphttp.RouterConfig{
-		Logger:   discardLogger(),
+		Logger:   logger,
 		Tokens:   tokens,
 		Auth:     authH,
 		Player:   playerH,
 		Club:     clubH,
 		Season:   seasonH,
 		Division: divisionH,
+		Match:    matchH,
 	})
 
 	return &app{
@@ -423,6 +508,12 @@ func newDivision(
 
 func discardLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
+}
+
+func realLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
 }
 
 func itoa(n int64) string {
