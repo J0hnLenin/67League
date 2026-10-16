@@ -118,3 +118,7 @@ db-reset: ## Полный сброс БД: down -v + up + migrate-up
 	@echo ">>> ждём готовности Postgres..."
 	@until docker exec liga67-postgres pg_isready -U liga -d liga67 >/dev/null 2>&1; do sleep 0.5; done
 	$(MAKE) migrate-up
+
+.PHONY: test-e2e
+test-e2e:
+	$(GO) test ./internal/delivery/http/e2e/... -v -count=1
