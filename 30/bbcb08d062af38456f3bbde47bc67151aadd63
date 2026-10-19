@@ -1,0 +1,25 @@
+docker-compose.yml
+  s_713e41963733c7::t_348c8385187c27 56-57
+src/backend/cmd/admin/main.go
+  s_713e41963733c7::t_8f15db834e9f02 207-208,210-220,222,226,232,243
+.env.example
+  s_713e41963733c7::t_4f40ede1540b21 1,4-7,10
+.gitignore
+  s_713e41963733c7::t_87b545cac07610 35-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30bbcb08d062af38456f3bbde47bc67151aadd63",
+  "prompts": {},
+  "sessions": {
+    "s_713e41963733c7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3599dbc8-6b56-4600-8094-51a823c27e12",
+        "model": "kimi-k2-6"
+      },
+      "human_author": "sente <sente@mts.ru>"
+    }
+  }
+}
