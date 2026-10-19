@@ -232,7 +232,7 @@ func main() {
 	}
 
 	// ---- HTTP handlers ------------------------------------------------
-	authHandler := handler.NewAuthHandler(registerUC, loginUC, logger)
+	authHandler := handler.NewAuthHandler(registerUC, loginUC, tokens, logger)
 	playerHandler := handler.NewPlayerHandler(
 		playerRepo,
 		badgeRepo,

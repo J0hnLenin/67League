@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/J0hnLenin/67League/internal/application/dto"
+	"github.com/J0hnLenin/67League/internal/application/ports"
 	"github.com/J0hnLenin/67League/internal/application/usecases/player"
 	"github.com/J0hnLenin/67League/internal/delivery/http/httputil"
 
@@ -17,15 +18,17 @@ import (
 type AuthHandler struct {
 	register *player.RegisterPlayer
 	login    *player.LoginPlayer
+	tokens   ports.TokenIssuer
 	logger   *slog.Logger
 }
 
 func NewAuthHandler(
 	register *player.RegisterPlayer,
 	login *player.LoginPlayer,
+	tokens ports.TokenIssuer,
 	logger *slog.Logger,
 ) *AuthHandler {
-	return &AuthHandler{register: register, login: login, logger: logger}
+	return &AuthHandler{register: register, login: login, tokens: tokens, logger: logger}
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +73,18 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := appdto.RegisterResponse{PlayerID: int64(out.Player.ID)}
+	token, err := h.tokens.IssuePlayer(out.Player.ID)
+	if err != nil {
+		httputil.LogError(h.logger, err, "path", "auth.register.issue_token")
+		httputil.WriteError(w, err)
+		return
+	}
+
+	resp := appdto.RegisterResponse{
+		PlayerID: int64(out.Player.ID),
+		Token:    token,
+		Nickname: string(out.Player.Nickname),
+	}
 	if out.Division != nil {
 		d := int64(*out.Division)
 		resp.DivisionID = &d

@@ -10,11 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/J0hnLenin/67League/internal/application/ports"
 	badgeuc "github.com/J0hnLenin/67League/internal/application/usecases/badge"
 	matchuc "github.com/J0hnLenin/67League/internal/application/usecases/match"
 	seasonuc "github.com/J0hnLenin/67League/internal/application/usecases/season"
 	adminhttp "github.com/J0hnLenin/67League/internal/delivery/adminhttp"
 	adminhandler "github.com/J0hnLenin/67League/internal/delivery/adminhttp/handler"
+	"github.com/J0hnLenin/67League/internal/domain/admin"
 	"github.com/J0hnLenin/67League/internal/infrastructure/auth"
 	"github.com/J0hnLenin/67League/internal/infrastructure/persistence/postgres"
 )
@@ -44,6 +46,12 @@ func main() {
 	defer db.Close()
 	pool := db.Pool()
 
+	// Infrastructure
+	hasher := auth.NewPasswordHasher(0)
+	tokens := auth.NewJWTIssuer(auth.JWTConfig{Secret: jwtSecret})
+	txManager := postgres.NewTxManager(pool)
+	clock := systemClock{}
+
 	// Repositories
 	adminRepo := postgres.NewAdminRepo(pool)
 	playerRepo := postgres.NewPlayerRepo(pool)
@@ -61,10 +69,8 @@ func main() {
 	stoneRepo := postgres.NewStoneTransactionRepo(pool)
 	settingsRepo := postgres.NewSettingsRepo(pool)
 
-	hasher := auth.NewPasswordHasher(0)
-	tokens := auth.NewJWTIssuer(auth.JWTConfig{Secret: jwtSecret})
-	txManager := postgres.NewTxManager(pool)
-	clock := systemClock{}
+	// Seed default admin if none exists
+	seedDefaultAdmin(ctx, adminRepo, hasher, logger)
 
 	// Use cases: season
 	calculateUC, err := seasonuc.NewCalculateSeasonResults(seasonuc.CalculateSeasonResultsDeps{
@@ -196,3 +202,34 @@ func main() {
 type systemClock struct{}
 
 func (systemClock) Now() time.Time { return time.Now().UTC() }
+
+// seedDefaultAdmin создаёт админа по умолчанию, если в БД ещё нет админов.
+// Логин: admin, пароль: admin (только для dev!).
+func seedDefaultAdmin(ctx context.Context, repo ports.AdminRepository, hasher ports.PasswordHasher, logger *slog.Logger) {
+	// Проверяем, есть ли уже админы
+	// GetByLogin с логином "admin" — если не найден, создаём
+	_, err := repo.GetByLogin(ctx, "admin")
+	if err == nil {
+		logger.Info("default admin already exists")
+		return
+	}
+
+	hash, err := hasher.Hash("admin")
+	if err != nil {
+		logger.Error("seed admin: hash password", "err", err)
+		return
+	}
+
+	a, err := admin.New("admin", hash, time.Now().UTC())
+	if err != nil {
+		logger.Error("seed admin: create entity", "err", err)
+		return
+	}
+
+	if err := repo.Create(ctx, a); err != nil {
+		logger.Error("seed admin: save to db", "err", err)
+		return
+	}
+
+	logger.Info("seeded default admin", "login", "admin", "password", "admin")
+}

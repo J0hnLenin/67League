@@ -40,7 +40,7 @@ async function request<T>(
 export const api = {
   // Auth
   register: (data: RegisterInput) =>
-    request<{ token: string; player: Player }>("/auth/register", {
+    request<{ token: string; player_id: number; nickname: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     }),

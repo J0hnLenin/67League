@@ -1,34 +1,20 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import Header from "@/components/Header";
 
 export default function HomePage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary-700">6-7 Лига</span>
-            <span className="text-sm text-gray-500 hidden sm:inline">Студенческая лига по Го</span>
-          </div>
-          <nav className="flex items-center gap-4">
-            <Link href="/about" className="text-gray-600 hover:text-primary-600 transition-colors">
-              О лиге
-            </Link>
-            <Link href="/leaderboard" className="text-gray-600 hover:text-primary-600 transition-colors">
-              Таблица
-            </Link>
-            <Link href="/clubs" className="text-gray-600 hover:text-primary-600 transition-colors">
-              Клубы
-            </Link>
-            <Link
-              href="/login"
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Войти
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
@@ -40,18 +26,29 @@ export default function HomePage() {
           Не pay-to-win — только соревнование и сообщество.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/register"
-            className="bg-primary-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
-          >
-            Присоединиться
-          </Link>
-          <Link
-            href="/about"
-            className="bg-white text-gray-700 border border-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-colors"
-          >
-            Узнать больше
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="bg-primary-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+            >
+              В личный кабинет →
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/register"
+                className="bg-primary-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+              >
+                Присоединиться
+              </Link>
+              <Link
+                href="/about"
+                className="bg-white text-gray-700 border border-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Узнать больше
+              </Link>
+            </>
+          )}
         </div>
       </section>
 
