@@ -204,23 +204,32 @@ type systemClock struct{}
 func (systemClock) Now() time.Time { return time.Now().UTC() }
 
 // seedDefaultAdmin создаёт админа по умолчанию, если в БД ещё нет админов.
-// Логин: admin, пароль: admin (только для dev!).
+// Логин и пароль берутся из env: ADMIN_SEED_LOGIN и ADMIN_SEED_PASSWORD.
+// Если не заданы — используются значения по умолчанию (только для dev!).
 func seedDefaultAdmin(ctx context.Context, repo ports.AdminRepository, hasher ports.PasswordHasher, logger *slog.Logger) {
-	// Проверяем, есть ли уже админы
-	// GetByLogin с логином "admin" — если не найден, создаём
-	_, err := repo.GetByLogin(ctx, "admin")
+	login := os.Getenv("ADMIN_SEED_LOGIN")
+	if login == "" {
+		login = "admin"
+	}
+	password := os.Getenv("ADMIN_SEED_PASSWORD")
+	if password == "" {
+		password = "admin"
+	}
+
+	// Проверяем, есть ли уже админ с таким логином
+	_, err := repo.GetByLogin(ctx, login)
 	if err == nil {
-		logger.Info("default admin already exists")
+		logger.Info("seed admin: already exists", "login", login)
 		return
 	}
 
-	hash, err := hasher.Hash("admin")
+	hash, err := hasher.Hash(password)
 	if err != nil {
 		logger.Error("seed admin: hash password", "err", err)
 		return
 	}
 
-	a, err := admin.New("admin", hash, time.Now().UTC())
+	a, err := admin.New(login, hash, time.Now().UTC())
 	if err != nil {
 		logger.Error("seed admin: create entity", "err", err)
 		return
@@ -231,5 +240,5 @@ func seedDefaultAdmin(ctx context.Context, repo ports.AdminRepository, hasher po
 		return
 	}
 
-	logger.Info("seeded default admin", "login", "admin", "password", "admin")
+	logger.Info("seeded default admin", "login", login)
 }
