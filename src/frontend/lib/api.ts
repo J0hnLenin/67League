@@ -145,6 +145,7 @@ export interface Club {
   logo_url?: string;
   created_by: string;
   status: "active" | "archived";
+  members?: number;
   created_at: string;
 }
 

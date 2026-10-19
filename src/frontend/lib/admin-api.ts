@@ -1,5 +1,7 @@
-// В dev-режиме Next.js проксирует /admin/* на админ-бэкенд (см. next.config.ts).
-const ADMIN_API_BASE = "/admin";
+// Проксируется через Next.js rewrite /api/admin/* → админ-бэкенд.
+import { Player, Match, Club, Season } from "@/lib/api";
+
+const ADMIN_API_BASE = "/api/admin";
 
 async function adminRequest<T>(
   path: string,
@@ -34,13 +36,14 @@ async function adminRequest<T>(
 }
 
 export const adminApi = {
-  login: (data: { email: string; password: string }) =>
-    adminRequest<{ token: string; player_id: number; nickname: string }>("/login", {
+  login: (data: { login: string; password: string }) =>
+    adminRequest<{ token: string; admin_id: number }>("/login", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   // Seasons
+  listSeasons: () => adminRequest<Season[]>("/seasons"),
   createSeason: (data: { number: number; title: string; start_date: string; end_date: string }) =>
     adminRequest<{ season_id: number }>("/seasons", { method: "POST", body: JSON.stringify(data) }),
 
@@ -66,13 +69,27 @@ export const adminApi = {
 
   // Players
   listPlayers: () =>
-    adminRequest<{ players: Array<{ id: number; full_name: string; nickname: string; email: string; status: string }> }>("/players"),
+    adminRequest<Player[]>("/players"),
+  getPlayer: (id: string) =>
+    adminRequest<Player>(`/players/${id}`),
+  updatePlayer: (id: string, data: Partial<Player>) =>
+    adminRequest<Player>(`/players/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  playerMatches: (id: string) =>
+    adminRequest<Match[]>(`/players/${id}/matches`),
   banPlayer: (id: string) =>
     adminRequest<void>(`/players/${id}/ban`, { method: "POST" }),
   unbanPlayer: (id: string) =>
     adminRequest<void>(`/players/${id}/unban`, { method: "POST" }),
 
+  // Clubs
+  listClubs: () =>
+    adminRequest<Club[]>("/clubs"),
+
   // Matches
+  listMatches: () =>
+    adminRequest<Match[]>("/matches"),
+  getMatch: (id: string) =>
+    adminRequest<Match>(`/matches/${id}`),
   cancelMatch: (id: string) =>
     adminRequest<void>(`/matches/${id}/cancel`, { method: "POST" }),
 

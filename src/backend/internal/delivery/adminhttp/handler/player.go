@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -14,10 +15,87 @@ import (
 
 type AdminPlayerHandler struct {
 	players ports.PlayerRepository
+	matches ports.MatchRepository
 }
 
-func NewAdminPlayerHandler(players ports.PlayerRepository) *AdminPlayerHandler {
-	return &AdminPlayerHandler{players: players}
+func NewAdminPlayerHandler(players ports.PlayerRepository, matches ports.MatchRepository) *AdminPlayerHandler {
+	return &AdminPlayerHandler{players: players, matches: matches}
+}
+
+func (h *AdminPlayerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(chi.URLParam(r, "id"))
+	if err != nil {
+		httputil.WriteError(w, shared.ErrValidation)
+		return
+	}
+	p, err := h.players.GetByID(r.Context(), shared.PlayerID(id))
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+	httputil.WriteJSON(w, http.StatusOK, appdto.PlayerToResponse(p))
+}
+
+func (h *AdminPlayerHandler) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(chi.URLParam(r, "id"))
+	if err != nil {
+		httputil.WriteError(w, shared.ErrValidation)
+		return
+	}
+	p, err := h.players.GetByID(r.Context(), shared.PlayerID(id))
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+
+	var req struct {
+		FullName *string `json:"full_name,omitempty"`
+		City     *string `json:"city,omitempty"`
+		Rating   *int    `json:"rating,omitempty"`
+		Status   *string `json:"status,omitempty"`
+		ClubID   *int64  `json:"club_id,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputil.WriteError(w, shared.ErrValidation)
+		return
+	}
+
+	if req.FullName != nil {
+		p.FullName = *req.FullName
+	}
+	if req.City != nil {
+		p.City = *req.City
+	}
+	if req.Rating != nil {
+		p.Rating = shared.Rating(*req.Rating)
+	}
+	if req.Status != nil {
+		p.Status = domplayer.Status(*req.Status)
+	}
+	if req.ClubID != nil {
+		cid := shared.ClubID(*req.ClubID)
+		p.ClubID = &cid
+	}
+
+	if err := h.players.Update(r.Context(), p); err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+	httputil.WriteJSON(w, http.StatusOK, appdto.PlayerToResponse(p))
+}
+
+func (h *AdminPlayerHandler) Matches(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(chi.URLParam(r, "id"))
+	if err != nil {
+		httputil.WriteError(w, shared.ErrValidation)
+		return
+	}
+	list, err := h.matches.ListByPlayer(r.Context(), shared.PlayerID(id), ports.MatchFilter{Pagination: ports.DefaultPagination()})
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchesToResponse(list))
 }
 
 func (h *AdminPlayerHandler) List(w http.ResponseWriter, r *http.Request) {

@@ -161,8 +161,9 @@ func main() {
 		calculateUC, rotateUC,
 		awardPersonalUC, awardSeasonUC, awardSuperUC,
 	)
-	playerH := adminhandler.NewAdminPlayerHandler(playerRepo)
-	matchH := adminhandler.NewAdminMatchHandler(cancelUC)
+	playerH := adminhandler.NewAdminPlayerHandler(playerRepo, matchRepo)
+	clubH := adminhandler.NewAdminClubHandler(clubRepo, playerRepo)
+	matchH := adminhandler.NewAdminMatchHandler(matchRepo, cancelUC)
 	settingsH := adminhandler.NewAdminSettingsHandler(settingsRepo)
 
 	_ = stoneRepo // понадобится для будущих админских операций
@@ -175,6 +176,7 @@ func main() {
 		Auth:     authH,
 		Season:   seasonH,
 		Player:   playerH,
+		Club:     clubH,
 		Match:    matchH,
 		Settings: settingsH,
 	})

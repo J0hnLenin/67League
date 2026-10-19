@@ -612,3 +612,26 @@ func (_c *MatchRepository_Update_Call) RunAndReturn(run func(ctx context.Context
 	_c.Call.Return(run)
 	return _c
 }
+
+// List provides a mock function for the type MatchRepository
+func (_mock *MatchRepository) List(ctx context.Context, f ports.MatchFilter) ([]*match.Match, error) {
+	ret := _mock.Called(ctx, f)
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+	var r0 []*match.Match
+	if rf, ok := ret.Get(0).(func(context.Context, ports.MatchFilter) []*match.Match); ok {
+		r0 = rf(ctx, f)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*match.Match)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, ports.MatchFilter) error); ok {
+		r1 = rf(ctx, f)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}

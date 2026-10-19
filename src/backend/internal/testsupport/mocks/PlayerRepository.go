@@ -700,3 +700,26 @@ func (_c *PlayerRepository_Update_Call) RunAndReturn(run func(ctx context.Contex
 	_c.Call.Return(run)
 	return _c
 }
+
+// Search provides a mock function for the type PlayerRepository
+func (_mock *PlayerRepository) Search(ctx context.Context, query string, limit int) ([]*player.Player, error) {
+	ret := _mock.Called(ctx, query, limit)
+	if len(ret) == 0 {
+		panic("no return value specified for Search")
+	}
+	var r0 []*player.Player
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) []*player.Player); ok {
+		r0 = rf(ctx, query, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*player.Player)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, int) error); ok {
+		r1 = rf(ctx, query, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}

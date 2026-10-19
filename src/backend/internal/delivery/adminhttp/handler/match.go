@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	appdtoapp "github.com/J0hnLenin/67League/internal/application/dto"
+	"github.com/J0hnLenin/67League/internal/application/ports"
 	"github.com/J0hnLenin/67League/internal/application/usecases/match"
 	appdto "github.com/J0hnLenin/67League/internal/delivery/http/dto"
 	"github.com/J0hnLenin/67League/internal/delivery/http/httputil"
@@ -14,11 +15,36 @@ import (
 )
 
 type AdminMatchHandler struct {
-	cancel *match.CancelMatch
+	matches ports.MatchRepository
+	cancel  *match.CancelMatch
 }
 
-func NewAdminMatchHandler(cancel *match.CancelMatch) *AdminMatchHandler {
-	return &AdminMatchHandler{cancel: cancel}
+func NewAdminMatchHandler(matches ports.MatchRepository, cancel *match.CancelMatch) *AdminMatchHandler {
+	return &AdminMatchHandler{matches: matches, cancel: cancel}
+}
+
+func (h *AdminMatchHandler) List(w http.ResponseWriter, r *http.Request) {
+	f := ports.MatchFilter{Pagination: ports.DefaultPagination()}
+	list, err := h.matches.List(r.Context(), f)
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchesToResponse(list))
+}
+
+func (h *AdminMatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(chi.URLParam(r, "id"))
+	if err != nil {
+		httputil.WriteError(w, shared.ErrValidation)
+		return
+	}
+	m, err := h.matches.GetByID(r.Context(), shared.MatchID(id))
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+	httputil.WriteJSON(w, http.StatusOK, appdto.MatchToResponse(m))
 }
 
 func (h *AdminMatchHandler) Cancel(w http.ResponseWriter, r *http.Request) {

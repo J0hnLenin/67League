@@ -7,7 +7,7 @@ import { adminApi } from "@/lib/admin-api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await adminApi.login({ email, password });
+      const res = await adminApi.login({ login, password });
       localStorage.setItem("admin_token", res.token);
       router.push("/admin");
     } catch (err: any) {
@@ -44,14 +44,14 @@ export default function AdminLoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Логин</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
               required
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none"
-              placeholder="admin@example.com"
+              placeholder="admin"
             />
           </div>
 

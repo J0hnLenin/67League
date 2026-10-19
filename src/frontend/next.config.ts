@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
         destination: `${apiTarget}/api/v1/:path*`,
       },
       {
-        source: "/admin/:path*",
+        source: "/api/admin/:path*",
         destination: `${adminTarget}/admin/:path*`,
       },
     ];
