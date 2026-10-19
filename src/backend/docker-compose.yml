@@ -1,4 +1,5 @@
 services:
+  env_file: .env
   postgres:
     image: postgres:16-alpine
     container_name: liga67-postgres

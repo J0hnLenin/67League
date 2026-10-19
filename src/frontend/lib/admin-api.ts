@@ -1,4 +1,5 @@
-const ADMIN_API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_URL || "http://localhost:8081/admin";
+// В dev-режиме Next.js проксирует /admin/* на админ-бэкенд (см. next.config.ts).
+const ADMIN_API_BASE = "/admin";
 
 async function adminRequest<T>(
   path: string,

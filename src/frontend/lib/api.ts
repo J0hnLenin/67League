@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+// В dev-режиме Next.js проксирует /api/v1/* на бэкенд (см. next.config.ts).
+// В production фронт и бэкенд на одном домене или проксируются через nginx.
+const API_BASE = "/api/v1";
 
 export interface ApiError {
   message: string;
@@ -57,6 +59,8 @@ export const api = {
   myTitles: () => request<Title[]>("/me/titles"),
   myStoneHistory: () => request<StoneTransaction[]>("/me/stones/history"),
   myMatches: () => request<Match[]>("/me/matches"),
+  searchPlayers: (query: string) =>
+    request<Array<{ id: number; full_name: string; nickname: string }>>(`/players?q=${encodeURIComponent(query)}`),
 
   // Clubs
   clubs: () => request<Club[]>("/clubs"),

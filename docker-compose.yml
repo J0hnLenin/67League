@@ -28,6 +28,7 @@ services:
     restart: "no"
 
   backend:
+    env_file: .env
     build:
       context: ./src/backend
       dockerfile: Dockerfile
@@ -35,7 +36,6 @@ services:
     environment:
       LIGA_DB_DSN: postgres://liga:liga@postgres:5432/liga67?sslmode=disable
       LIGA_JWT_SECRET: ${LIGA_JWT_SECRET:-change-me-in-production}
-      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
     ports:
       - "8080:8080"
     depends_on:
@@ -52,7 +52,6 @@ services:
     environment:
       LIGA_DB_DSN: postgres://liga:liga@postgres:5432/liga67?sslmode=disable
       LIGA_JWT_SECRET: ${LIGA_JWT_SECRET:-change-me-in-production}
-      CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
       ADMIN_SEED_LOGIN: ${ADMIN_SEED_LOGIN:-admin}
       ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-admin}
     ports:
@@ -63,14 +62,16 @@ services:
     command: ./admin
 
   frontend:
-    
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
+      args:
+        API_PROXY_TARGET: http://backend:8080
+        ADMIN_PROXY_TARGET: http://admin:8081
     container_name: liga67-frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
-      NEXT_PUBLIC_ADMIN_API_URL: http://localhost:8081/admin
+      API_PROXY_TARGET: http://backend:8080
+      ADMIN_PROXY_TARGET: http://admin:8081
     ports:
       - "3000:3000"
     depends_on:
