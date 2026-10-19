@@ -1,0 +1,64 @@
+src/backend/internal/delivery/http/handler/player.go
+  s_713e41963733c7::t_79be0058f41f39 146-169
+docker-compose.yml
+  s_0ba5dab9e358ce::t_69fb8aa0665e82 73-74
+  s_0ba5dab9e358ce::t_7355f080746b0d 68-70
+  s_0ba5dab9e358ce::t_5d0d7569168fe8 31
+src/frontend/lib/api.ts
+  s_713e41963733c7::t_87558cd7c78016 62-63
+  s_0ba5dab9e358ce::t_0161565b08150e 1-3
+src/frontend/app/page.tsx
+  s_713e41963733c7::t_698b2e0be0dae8 3,6,10-11,16-34,37-52,54-196,198-199,201,203-213,218-260,262-267
+src/backend/internal/application/ports/player.go
+  s_713e41963733c7::t_e4c640b1bde01d 32-34
+src/backend/internal/delivery/http/router.go
+  s_0ba5dab9e358ce::t_47908467b63741 104,107,110-115,118,125-127,129-130
+  s_0ba5dab9e358ce::t_677a23e97e16f5 128
+  s_713e41963733c7::t_4e3c839ac77f38 51
+src/backend/internal/delivery/adminhttp/router.go
+  s_0ba5dab9e358ce::t_9753ea8f159d63 89,92-97,99-100,107-109,111-112
+  s_0ba5dab9e358ce::t_48ee13011e97a8 110
+src/frontend/lib/admin-api.ts
+  s_0ba5dab9e358ce::t_b786c42c0b720b 1-2
+src/frontend/app/globals.css
+  s_713e41963733c7::t_028ee2732aa296 14-18,23-186
+src/frontend/next.config.ts
+  s_0ba5dab9e358ce::t_898a4a3ac3ce36 3-5,12,16
+  s_0ba5dab9e358ce::t_71de72954db79c 8-11,13-15,17-19
+src/backend/internal/delivery/http/dto/player.go
+  s_713e41963733c7::t_8c7c4241618e4f 40-45
+src/frontend/Dockerfile
+  s_0ba5dab9e358ce::t_828ca191cc5d1e 4-8
+src/backend/internal/infrastructure/persistence/postgres/player_repo.go
+  s_713e41963733c7::t_bb2ac3a4f1ea84 169-189
+src/frontend/components/FloatingStones.tsx
+  s_713e41963733c7::t_5150773855a7e8 1-101
+src/frontend/components/PlayerSearch.tsx
+  s_713e41963733c7::t_0bd55ac285f483 1-116
+src/backend/docker-compose.yml
+  s_713e41963733c7::t_2eb4e6143e7dfc 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fd93c5659abdd808728583b7ae67d33c902c05d5",
+  "prompts": {},
+  "sessions": {
+    "s_0ba5dab9e358ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e3027d95-a5ef-4f2b-b2b3-ba8f44b55d1a",
+        "model": "kimi-k2-6"
+      },
+      "human_author": "sente <sente@mts.ru>"
+    },
+    "s_713e41963733c7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3599dbc8-6b56-4600-8094-51a823c27e12",
+        "model": "kimi-k2-6"
+      },
+      "human_author": "sente <sente@mts.ru>"
+    }
+  }
+}
