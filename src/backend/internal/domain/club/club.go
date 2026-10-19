@@ -13,6 +13,14 @@ const (
 	StatusArchived Status = "archived"
 )
 
+func (s Status) Valid() bool {
+	switch s {
+	case StatusActive, StatusArchived:
+		return true
+	}
+	return false
+}
+
 type Club struct {
 	ID         shared.ClubID
 	Name       string
