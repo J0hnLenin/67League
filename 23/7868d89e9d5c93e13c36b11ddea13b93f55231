@@ -1,0 +1,78 @@
+src/backend/internal/application/ports/match.go
+  s_0ba5dab9e358ce::t_899512ecded4d1 21-23
+src/backend/internal/delivery/adminhttp/README.md
+  s_0ba5dab9e358ce::t_f4946721304b06 1-97
+src/frontend/lib/admin-api.ts
+  s_0ba5dab9e358ce::t_09b43d91fc5c17 1,4
+  s_0ba5dab9e358ce::t_5f5b36d4de79d4 2-3
+  s_0ba5dab9e358ce::t_84919f2520a325 72-78,84-87,89-92
+  s_0ba5dab9e358ce::t_7b6f415d20b329 46
+  s_0ba5dab9e358ce::t_321ecab337fb73 39-40
+src/backend/internal/infrastructure/persistence/postgres/match_repo.go
+  s_0ba5dab9e358ce::t_5e6fac202b67bc 88-121
+src/backend/internal/delivery/adminhttp/router.go
+  s_0ba5dab9e358ce::t_edf8b9eb3e9f82 54,71-73,78-81,83-84
+  s_0ba5dab9e358ce::t_017271ddd7fcc6 25
+src/backend/internal/delivery/adminhttp/handler/season_test.go
+  s_0ba5dab9e358ce::t_903eaa033de98b 1-39
+src/frontend/app/admin/login/page.tsx
+  s_0ba5dab9e358ce::t_3056c1b0713c20 47,49-51,54
+  s_0ba5dab9e358ce::t_c59e2e5f338c8e 10,21
+src/backend/internal/testsupport/mocks/PlayerRepository.go
+  s_0ba5dab9e358ce::t_adaa706beba883 703-704,707-710,713-718,721-725
+  s_0ba5dab9e358ce::t_cd11a28b0cc9dd 705-706,711-712,719-720
+src/backend/internal/delivery/adminhttp/handler/player.go
+  s_0ba5dab9e358ce::t_b1eefb301d600a 93,98
+  s_0ba5dab9e358ce::t_4d01b8b776feee 4,18,21-22
+  s_0ba5dab9e358ce::t_a8b1f77ccee81c 23,25-92,94-97
+  s_0ba5dab9e358ce::t_8a2bc9841499a9 24
+src/frontend/app/admin/players/page.tsx
+  s_0ba5dab9e358ce::t_dd172cfbdca9de 1-185
+src/frontend/next.config.ts
+  s_0ba5dab9e358ce::t_9f0e891ab917cd 15
+src/backend/internal/delivery/adminhttp/handler/season.go
+  s_0ba5dab9e358ce::t_1ec136231ebb10 32-44
+src/backend/cmd/admin/main.go
+  s_0ba5dab9e358ce::t_4243392c3e0b50 164-166,179
+src/frontend/app/admin/settings/page.tsx
+  s_0ba5dab9e358ce::t_bcbdc631ffd72b 1-159
+src/frontend/app/admin/page.tsx
+  s_0ba5dab9e358ce::t_51cf681fe43aa1 10,21-34,62,64-71,73-74,78-81,83-96,99
+src/frontend/lib/api.ts
+  s_0ba5dab9e358ce::t_7e7b073a08cd11 148
+src/backend/internal/delivery/adminhttp/handler/club.go
+  s_0ba5dab9e358ce::t_2cbe46438cca93 1-32
+src/backend/internal/delivery/adminhttp/handler/match.go
+  s_0ba5dab9e358ce::t_eb575b5c69412a 18-19,22-47
+  s_0ba5dab9e358ce::t_1846ffd2fec91b 10
+src/frontend/app/admin/matches/page.tsx
+  s_0ba5dab9e358ce::t_71734e39c6b22a 1-165
+src/backend/internal/delivery/adminhttp/handler/player_test.go
+  s_0ba5dab9e358ce::t_782be0a6d6b045 1-144
+src/frontend/app/admin/clubs/page.tsx
+  s_0ba5dab9e358ce::t_2ed54cce54ae65 1-125
+src/backend/internal/delivery/adminhttp/handler/club_test.go
+  s_0ba5dab9e358ce::t_c6ff52bd209bf7 1-41
+src/frontend/app/admin/players/[id]/page.tsx
+  s_0ba5dab9e358ce::t_c3c7639146941d 25
+  s_0ba5dab9e358ce::t_0c7f4a185619cf 1-24,26-183,185-290
+  s_0ba5dab9e358ce::t_4e553b3e186bed 184
+src/backend/internal/testsupport/mocks/MatchRepository.go
+  s_0ba5dab9e358ce::t_1bcedbfb8130cd 615-637
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "237868d89e9d5c93e13c36b11ddea13b93f55231",
+  "prompts": {},
+  "sessions": {
+    "s_0ba5dab9e358ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e3027d95-a5ef-4f2b-b2b3-ba8f44b55d1a",
+        "model": "kimi-k2-6"
+      },
+      "human_author": "sente <sente@mts.ru>"
+    }
+  }
+}
