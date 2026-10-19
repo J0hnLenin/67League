@@ -85,6 +85,40 @@ func (r *MatchRepo) Update(ctx context.Context, m *dommatch.Match) error {
 	return nil
 }
 
+// List — все партии с фильтром (для админки).
+func (r *MatchRepo) List(
+	ctx context.Context,
+	f ports.MatchFilter,
+) ([]*dommatch.Match, error) {
+	q := QuerierFromCtx(ctx, r.pool)
+
+	sql := `SELECT ` + matchColumns + ` FROM matches WHERE 1=1`
+	args := []any{}
+	argN := 1
+
+	if f.Status != nil {
+		sql += fmt.Sprintf(` AND status = $%d`, argN)
+		args = append(args, string(*f.Status))
+		argN++
+	}
+	if f.Server != nil {
+		sql += fmt.Sprintf(` AND server = $%d`, argN)
+		args = append(args, string(*f.Server))
+		argN++
+	}
+
+	p := f.Pagination.Normalize()
+	sql += fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, argN, argN+1)
+	args = append(args, p.Limit, p.Offset)
+
+	rows, err := q.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list matches: %w", err)
+	}
+	defer rows.Close()
+	return scanMatches(rows)
+}
+
 func (r *MatchRepo) ListByPlayer(
 	ctx context.Context,
 	playerID shared.PlayerID,

@@ -18,6 +18,9 @@ type MatchRepository interface {
 	GetByID(ctx context.Context, id shared.MatchID) (*match.Match, error)
 	Update(ctx context.Context, m *match.Match) error
 
+	// List — все партии с фильтром (для админки).
+	List(ctx context.Context, f MatchFilter) ([]*match.Match, error)
+
 	// ListByPlayer — партии игрока с фильтром.
 	ListByPlayer(ctx context.Context, playerID shared.PlayerID, f MatchFilter) ([]*match.Match, error)
 

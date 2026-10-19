@@ -174,6 +174,19 @@ E2E	UI + API + БД	Playwright, Go e2e
 
     e2e — все критические сценарии.
 
+Текущий прогресс (2026-10-19):
+
+    domain — тесты написаны для: player, match, season, division, club, shared, settings.
+      Остались: admin, badge, economy, notification.
+
+    application — use case тесты проходят (register, login, club create/join,
+      season join, match lifecycle, badge awarding, rotation, calculation).
+
+    infrastructure — тесты написаны, требуют Docker + Postgres.
+
+    e2e — Go e2e для API написаны, требуют Docker + Postgres.
+      Playwright/Cypress для UI — не начаты (нет frontend).
+
 5. Quality Gates
 
 Перед merge:

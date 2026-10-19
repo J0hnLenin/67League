@@ -10,11 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/J0hnLenin/67League/internal/application/ports"
 	badgeuc "github.com/J0hnLenin/67League/internal/application/usecases/badge"
 	matchuc "github.com/J0hnLenin/67League/internal/application/usecases/match"
 	seasonuc "github.com/J0hnLenin/67League/internal/application/usecases/season"
 	adminhttp "github.com/J0hnLenin/67League/internal/delivery/adminhttp"
 	adminhandler "github.com/J0hnLenin/67League/internal/delivery/adminhttp/handler"
+	"github.com/J0hnLenin/67League/internal/domain/admin"
 	"github.com/J0hnLenin/67League/internal/infrastructure/auth"
 	"github.com/J0hnLenin/67League/internal/infrastructure/persistence/postgres"
 )
@@ -44,6 +46,12 @@ func main() {
 	defer db.Close()
 	pool := db.Pool()
 
+	// Infrastructure
+	hasher := auth.NewPasswordHasher(0)
+	tokens := auth.NewJWTIssuer(auth.JWTConfig{Secret: jwtSecret})
+	txManager := postgres.NewTxManager(pool)
+	clock := systemClock{}
+
 	// Repositories
 	adminRepo := postgres.NewAdminRepo(pool)
 	playerRepo := postgres.NewPlayerRepo(pool)
@@ -61,10 +69,8 @@ func main() {
 	stoneRepo := postgres.NewStoneTransactionRepo(pool)
 	settingsRepo := postgres.NewSettingsRepo(pool)
 
-	hasher := auth.NewPasswordHasher(0)
-	tokens := auth.NewJWTIssuer(auth.JWTConfig{Secret: jwtSecret})
-	txManager := postgres.NewTxManager(pool)
-	clock := systemClock{}
+	// Seed default admin if none exists
+	seedDefaultAdmin(ctx, adminRepo, hasher, logger)
 
 	// Use cases: season
 	calculateUC, err := seasonuc.NewCalculateSeasonResults(seasonuc.CalculateSeasonResultsDeps{
@@ -155,8 +161,9 @@ func main() {
 		calculateUC, rotateUC,
 		awardPersonalUC, awardSeasonUC, awardSuperUC,
 	)
-	playerH := adminhandler.NewAdminPlayerHandler(playerRepo)
-	matchH := adminhandler.NewAdminMatchHandler(cancelUC)
+	playerH := adminhandler.NewAdminPlayerHandler(playerRepo, matchRepo)
+	clubH := adminhandler.NewAdminClubHandler(clubRepo, playerRepo)
+	matchH := adminhandler.NewAdminMatchHandler(matchRepo, cancelUC)
 	settingsH := adminhandler.NewAdminSettingsHandler(settingsRepo)
 
 	_ = stoneRepo // понадобится для будущих админских операций
@@ -169,6 +176,7 @@ func main() {
 		Auth:     authH,
 		Season:   seasonH,
 		Player:   playerH,
+		Club:     clubH,
 		Match:    matchH,
 		Settings: settingsH,
 	})
@@ -196,3 +204,43 @@ func main() {
 type systemClock struct{}
 
 func (systemClock) Now() time.Time { return time.Now().UTC() }
+
+// seedDefaultAdmin создаёт админа по умолчанию, если в БД ещё нет админов.
+// Логин и пароль берутся из env: ADMIN_SEED_LOGIN и ADMIN_SEED_PASSWORD.
+// Если не заданы — используются значения по умолчанию (только для dev!).
+func seedDefaultAdmin(ctx context.Context, repo ports.AdminRepository, hasher ports.PasswordHasher, logger *slog.Logger) {
+	login := os.Getenv("ADMIN_SEED_LOGIN")
+	if login == "" {
+		login = "admin"
+	}
+	password := os.Getenv("ADMIN_SEED_PASSWORD")
+	if password == "" {
+		password = "admin"
+	}
+
+	// Проверяем, есть ли уже админ с таким логином
+	_, err := repo.GetByLogin(ctx, login)
+	if err == nil {
+		logger.Info("seed admin: already exists", "login", login)
+		return
+	}
+
+	hash, err := hasher.Hash(password)
+	if err != nil {
+		logger.Error("seed admin: hash password", "err", err)
+		return
+	}
+
+	a, err := admin.New(login, hash, time.Now().UTC())
+	if err != nil {
+		logger.Error("seed admin: create entity", "err", err)
+		return
+	}
+
+	if err := repo.Create(ctx, a); err != nil {
+		logger.Error("seed admin: save to db", "err", err)
+		return
+	}
+
+	logger.Info("seeded default admin", "login", login)
+}

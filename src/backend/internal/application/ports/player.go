@@ -29,6 +29,9 @@ type PlayerRepository interface {
 
 	// List — общий список с фильтром (для админки).
 	List(ctx context.Context, f PlayerFilter) ([]*player.Player, error)
+
+	// Search — поиск игроков по имени или нику (для autocomplete).
+	Search(ctx context.Context, query string, limit int) ([]*player.Player, error)
 }
 
 // PlayerFilter — фильтр для админского списка.

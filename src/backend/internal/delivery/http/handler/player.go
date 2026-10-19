@@ -143,3 +143,27 @@ func (h *PlayerHandler) StoneHistory(w http.ResponseWriter, r *http.Request) {
 	}
 	httputil.WriteJSON(w, http.StatusOK, out)
 }
+
+func (h *PlayerHandler) Search(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		httputil.WriteJSON(w, http.StatusOK, []appdto.PlayerSearchResponse{})
+		return
+	}
+
+	list, err := h.players.Search(r.Context(), query, 10)
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+
+	out := make([]appdto.PlayerSearchResponse, 0, len(list))
+	for _, p := range list {
+		out = append(out, appdto.PlayerSearchResponse{
+			ID:       int64(p.ID),
+			FullName: p.FullName,
+			Nickname: string(p.Nickname),
+		})
+	}
+	httputil.WriteJSON(w, http.StatusOK, out)
+}

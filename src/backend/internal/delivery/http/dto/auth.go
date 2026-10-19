@@ -17,6 +17,8 @@ type RegisterRequest struct {
 type RegisterResponse struct {
 	PlayerID   int64  `json:"player_id"`
 	DivisionID *int64 `json:"division_id,omitempty"`
+	Token      string `json:"token"`
+	Nickname   string `json:"nickname"`
 }
 
 type LoginRequest struct {

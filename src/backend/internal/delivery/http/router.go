@@ -3,9 +3,12 @@ package http
 import (
 	"log/slog"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/J0hnLenin/67League/internal/application/ports"
 	"github.com/J0hnLenin/67League/internal/delivery/http/handler"
@@ -31,6 +34,7 @@ func NewRouter(cfg RouterConfig) http.Handler {
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(cfg.Logger))
 	r.Use(middleware.Recover(cfg.Logger))
+	r.Use(corsMiddleware())
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -44,6 +48,7 @@ func NewRouter(cfg RouterConfig) http.Handler {
 			r.Post("/login", cfg.Auth.Login)
 		})
 
+		r.Get("/players", cfg.Player.Search)
 		r.Get("/players/{id}", cfg.Player.GetByID)
 
 		r.Get("/clubs", cfg.Club.List)
@@ -91,4 +96,36 @@ func NewRouter(cfg RouterConfig) http.Handler {
 	})
 
 	return r
+}
+
+// corsMiddleware возвращает CORS middleware.
+// В dev-режиме разрешает запросы с localhost (фронтенд).
+// В production — только с указанного ORIGIN.
+// Если CORS_ALLOWED_ORIGINS=*, разрешает любой origin (удобно для локальной сети).
+func corsMiddleware() func(http.Handler) http.Handler {
+	origins := []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	allowAll := false
+	if env := os.Getenv("CORS_ALLOWED_ORIGINS"); env != "" {
+		origins = strings.Split(env, ",")
+		for _, o := range origins {
+			if strings.TrimSpace(o) == "*" {
+				allowAll = true
+				break
+			}
+		}
+	}
+
+	opts := cors.Options{
+		AllowedOrigins:   origins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
+		ExposedHeaders:   []string{"X-Request-ID"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}
+	if allowAll {
+		opts.AllowedOrigins = nil
+		opts.AllowOriginFunc = func(r *http.Request, origin string) bool { return true }
+	}
+	return cors.Handler(opts)
 }

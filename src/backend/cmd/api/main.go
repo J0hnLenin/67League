@@ -67,7 +67,10 @@ func main() {
 	notificationRepo := postgres.NewNotificationRepo(pool)
 	settingsRepo := postgres.NewSettingsRepo(pool)
 
-	// Часть репозиториев пока не подключена к handlers.
+	// TODO: подключить adminRepo к admin HTTP handlers (cmd/admin/main.go уже использует).
+	// TODO: подключить superTitleRepo — выдача супертитула через admin API.
+	// TODO: подключить purchaseRepo — магазин и покупки (фаза 2).
+	// TODO: подключить settingsRepo — глобальные настройки через API.
 	_ = adminRepo
 	_ = superTitleRepo
 	_ = purchaseRepo
@@ -229,7 +232,7 @@ func main() {
 	}
 
 	// ---- HTTP handlers ------------------------------------------------
-	authHandler := handler.NewAuthHandler(registerUC, loginUC, logger)
+	authHandler := handler.NewAuthHandler(registerUC, loginUC, tokens, logger)
 	playerHandler := handler.NewPlayerHandler(
 		playerRepo,
 		badgeRepo,

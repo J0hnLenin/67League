@@ -37,3 +37,9 @@ type StoneTransactionResponse struct {
 	Reason    string  `json:"reason"`
 	CreatedAt string  `json:"created_at"`
 }
+
+type PlayerSearchResponse struct {
+	ID       int64  `json:"id"`
+	FullName string `json:"full_name"`
+	Nickname string `json:"nickname"`
+}

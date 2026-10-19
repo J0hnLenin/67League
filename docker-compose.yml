@@ -1,0 +1,82 @@
+services:
+  
+  postgres:
+    image: postgres:16-alpine
+    container_name: liga67-postgres
+    environment:
+      POSTGRES_USER: liga
+      POSTGRES_PASSWORD: liga
+      POSTGRES_DB: liga67
+    ports:
+      - "5432:5432"
+    volumes:
+      - liga67_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U liga -d liga67"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  migrate:
+    image: migrate/migrate:v4.17.1
+    command: ["-path", "/migrations", "-database", "postgres://liga:liga@postgres:5432/liga67?sslmode=disable", "up"]
+    volumes:
+      - ./src/backend/migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    env_file: .env
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    container_name: liga67-backend
+    environment:
+      LIGA_DB_DSN: postgres://liga:liga@postgres:5432/liga67?sslmode=disable
+      LIGA_JWT_SECRET: ${LIGA_JWT_SECRET:-change-me-in-production}
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ./api
+
+  admin:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    container_name: liga67-admin
+    env_file: .env
+    environment:
+      LIGA_DB_DSN: postgres://liga:liga@postgres:5432/liga67?sslmode=disable
+      LIGA_JWT_SECRET: ${LIGA_JWT_SECRET:-change-me-in-production}
+      ADMIN_SEED_LOGIN: ${ADMIN_SEED_LOGIN:-admin}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-admin}
+    ports:
+      - "8081:8081"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ./admin
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+      args:
+        API_PROXY_TARGET: http://backend:8080
+        ADMIN_PROXY_TARGET: http://admin:8081
+    container_name: liga67-frontend
+    environment:
+      API_PROXY_TARGET: http://backend:8080
+      ADMIN_PROXY_TARGET: http://admin:8081
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      - admin
+
+volumes:
+  liga67_pgdata:

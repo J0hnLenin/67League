@@ -166,6 +166,27 @@ func (r *PlayerRepo) List(ctx context.Context, f ports.PlayerFilter) ([]*domplay
 	return scanPlayers(rows)
 }
 
+func (r *PlayerRepo) Search(ctx context.Context, query string, limit int) ([]*domplayer.Player, error) {
+	q := QuerierFromCtx(ctx, r.pool)
+	pattern := "%" + query + "%"
+	if limit <= 0 {
+		limit = 10
+	}
+	rows, err := q.Query(ctx,
+		`SELECT `+playerColumns+` FROM players
+		 WHERE status = 'active'
+		   AND (full_name ILIKE $1 OR nickname ILIKE $1)
+		 ORDER BY full_name
+		 LIMIT $2`,
+		pattern, limit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search players: %w", err)
+	}
+	defer rows.Close()
+	return scanPlayers(rows)
+}
+
 // ---- Внутренние помощники --------------------------------------------------
 
 func scanPlayer(row pgx.Row) (*domplayer.Player, error) {

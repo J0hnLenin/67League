@@ -13,6 +13,14 @@ const (
 	StatusFinished Status = "finished"
 )
 
+func (s Status) Valid() bool {
+	switch s {
+	case StatusActive, StatusFinished:
+		return true
+	}
+	return false
+}
+
 type Division struct {
 	ID        shared.DivisionID
 	SeasonID  shared.SeasonID

@@ -29,6 +29,19 @@ type AdminSeasonHandler struct {
 	awardSuperTitle *badgeuc.AwardSuperTitle
 }
 
+func (h *AdminSeasonHandler) List(w http.ResponseWriter, r *http.Request) {
+	list, err := h.seasons.List(r.Context(), ports.SeasonFilter{Pagination: ports.DefaultPagination()})
+	if err != nil {
+		httputil.WriteError(w, err)
+		return
+	}
+	out := make([]appdto.SeasonResponse, 0, len(list))
+	for _, s := range list {
+		out = append(out, appdto.SeasonToResponse(s))
+	}
+	httputil.WriteJSON(w, http.StatusOK, out)
+}
+
 func NewAdminSeasonHandler(
 	seasons ports.SeasonRepository,
 	divisions ports.DivisionRepository,

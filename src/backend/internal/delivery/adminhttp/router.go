@@ -3,9 +3,12 @@ package adminhttp
 import (
 	"log/slog"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/J0hnLenin/67League/internal/application/ports"
 	adminhandler "github.com/J0hnLenin/67League/internal/delivery/adminhttp/handler"
@@ -19,6 +22,7 @@ type RouterConfig struct {
 	Auth     *adminhandler.AdminAuthHandler
 	Season   *adminhandler.AdminSeasonHandler
 	Player   *adminhandler.AdminPlayerHandler
+	Club     *adminhandler.AdminClubHandler
 	Match    *adminhandler.AdminMatchHandler
 	Settings *adminhandler.AdminSettingsHandler
 }
@@ -30,6 +34,7 @@ func NewRouter(cfg RouterConfig) http.Handler {
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger(cfg.Logger))
 	r.Use(middleware.Recover(cfg.Logger))
+	r.Use(corsMiddleware())
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -46,6 +51,7 @@ func NewRouter(cfg RouterConfig) http.Handler {
 			r.Use(middleware.RequireAdmin())
 
 			r.Route("/seasons", func(r chi.Router) {
+				r.Get("/", cfg.Season.List)
 				r.Post("/", cfg.Season.Create)
 
 				r.Post("/{id}/start-registration", cfg.Season.StartRegistration)
@@ -62,11 +68,20 @@ func NewRouter(cfg RouterConfig) http.Handler {
 
 			r.Route("/players", func(r chi.Router) {
 				r.Get("/", cfg.Player.List)
+				r.Get("/{id}", cfg.Player.GetByID)
+				r.Patch("/{id}", cfg.Player.Update)
+				r.Get("/{id}/matches", cfg.Player.Matches)
 				r.Post("/{id}/ban", cfg.Player.Ban)
 				r.Post("/{id}/unban", cfg.Player.Unban)
 			})
 
+			r.Route("/clubs", func(r chi.Router) {
+				r.Get("/", cfg.Club.List)
+			})
+
 			r.Route("/matches", func(r chi.Router) {
+				r.Get("/", cfg.Match.List)
+				r.Get("/{id}", cfg.Match.GetByID)
 				r.Post("/{id}/cancel", cfg.Match.Cancel)
 			})
 
@@ -78,4 +93,32 @@ func NewRouter(cfg RouterConfig) http.Handler {
 	})
 
 	return r
+}
+
+func corsMiddleware() func(http.Handler) http.Handler {
+	origins := []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	allowAll := false
+	if env := os.Getenv("CORS_ALLOWED_ORIGINS"); env != "" {
+		origins = strings.Split(env, ",")
+		for _, o := range origins {
+			if strings.TrimSpace(o) == "*" {
+				allowAll = true
+				break
+			}
+		}
+	}
+
+	opts := cors.Options{
+		AllowedOrigins:   origins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
+		ExposedHeaders:   []string{"X-Request-ID"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}
+	if allowAll {
+		opts.AllowedOrigins = nil
+		opts.AllowOriginFunc = func(r *http.Request, origin string) bool { return true }
+	}
+	return cors.Handler(opts)
 }
